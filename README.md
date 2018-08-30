@@ -59,6 +59,5 @@ Further updates are scheduled including the addition of a decoder to allow for s
 If you would like to contact me with any questions or comments about the implementation please email me at Jack_Parry@hotmail.com. 
 Any suggestions for improvements etc. are welcomed.
 
-###############################
+
 ############# END #############
-###############################
