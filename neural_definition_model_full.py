@@ -50,10 +50,10 @@ def del_all_flags(FLAGS):
     keys_list = [keys for keys in flags_dict]
     for keys in keys_list:
         FLAGS.__delattr__(keys)
-try:
-  del_all_flags(tf.flags.FLAGS)
-except AttributeError:
-  pass
+#try:
+#  del_all_flags(tf.flags.FLAGS)
+#except AttributeError:
+#  pass
 
 
 
