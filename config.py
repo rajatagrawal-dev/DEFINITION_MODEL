@@ -19,16 +19,16 @@ LSTM_type = "average" # bidirectional or average
 
 max_seq_len = 150
 
-batch_size = 16
+batch_size = 256
 learning_rate = 0.0001
-embedding_size = 500
+embedding_size = 100
 vocab_size = 100000 # orig. vocab size 100000. BPE vocab size will be smaller
 num_epochs = 10
 data_dir = "data/full_data"
 train_file = "training_set_cleaned.tok"
 dev_file = "dev_set.tok"
-test_file = "test_set.tok"
-restore = False      # Recover a previously trained model 
+test_file = "test_guardian_600.tok"
+restore = True      # Recover a previously trained model 
 evaluate = True      # Evaluate on dev set (can be done while tranining)
 vocab_file = data_dir + '/definitions_' + str(vocab_size) + '.vocab'
 pretrained_target = True

@@ -29,7 +29,7 @@ import numpy as np
 import scipy.spatial.distance as dist
 import tensorflow as tf
 
-import data_utils
+import data_utils_BPE
 
 #def del_all_flags(FLAGS):
 #    flags_dict = FLAGS._flags()

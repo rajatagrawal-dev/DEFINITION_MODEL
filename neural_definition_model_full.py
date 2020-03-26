@@ -50,12 +50,16 @@ def del_all_flags(FLAGS):
     keys_list = [keys for keys in flags_dict]
     for keys in keys_list:
         FLAGS.__delattr__(keys)
-try:
-  del_all_flags(tf.flags.FLAGS)
-except AttributeError:
-  pass
+#try:
+#  del_all_flags(tf.flags.FLAGS)
+#except AttributeError:
+#  pass
 
-
+#if 'absl.logging' in sys.modules:
+#    import absl.logging
+#    absl.logging.set_verbosity('info')
+#    absl.logging.set_stderrthreshold('info')
+#    # and any other apis you want, if you want
 
 tf.app.flags.DEFINE_integer("max_seq_len", config.max_seq_len, "Maximum length (in words) of a"
                             "definition processed by the model")
@@ -707,6 +711,14 @@ def main(unused_argv):
 
   # Load an existing model.
   else:
+    data_utils_BPE.prepare_dict_data(
+        FLAGS.data_dir,
+        FLAGS.train_file,
+        FLAGS.dev_file,
+        FLAGS.test_file,
+        vocabulary_size=FLAGS.vocab_size,
+        max_seq_len=FLAGS.max_seq_len)
+
     # Note cosine loss output form is hard coded here. For softmax output
       # change "cosine" to "softmax"
     if FLAGS.pretrained_input or FLAGS.pretrained_target:
@@ -735,4 +747,4 @@ def main(unused_argv):
 
 
 if __name__ == "__main__":
-  tf.app.run()
+    tf.compat.v1.app.run()
