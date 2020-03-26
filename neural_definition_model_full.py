@@ -646,6 +646,30 @@ def restore_model(sess, save_dir, vocab_file, out_form):
 # NOTE: The query model function is removed for this implementation. 
 #       It will be re-added in a future version
 
+def query_model(sess, input_node, predictions, vocab, rev_vocab, max_seq_len, output_embs_for_all_vocab):
+    while True:
+        sys.stdout.write("Type a definition: ")
+        sys.stdout.flush()
+        sentence = sys.stdin.readline()
+        sys.stdout.write("Number of candidates: ")
+        sys.stdout.flush()
+        top = int(sys.stdin.readline())
+        token_ids = data_utils_BPE.sentence_to_token_ids(sentence, vocab)
+        padded_ids = np.asarray(data_utils_BPE.pad_sequence(token_ids, max_seq_len))
+
+        input_data = np.asarray([padded_ids])
+        model_preds = sess.run(predictions, feed_dict={input_node: input_data})
+        sims = 1 - np.squeeze(dist.cdist(model_preds, output_embs_for_all_vocab, metric="cosine"))
+        sims = np.nan_to_num(sims)
+        candidate_ids = sims.argsort()[::-1][:top]
+        candidates = [rev_vocab[idx] for idx in candidate_ids]
+
+        print("\n Top %s candidates from the RNN model:" % top)
+        for ii, cand in enumerate(candidates):
+            print("%s: %s" % (ii + 1, cand))
+
+        sys.stdout.flush()
+        sentence = sys.stdin.readline()
 
 def main(unused_argv):
   """Calls train and test routines for the dictionary model.
@@ -735,16 +759,18 @@ def main(unused_argv):
           rev_vocab) = restore_model(sess, FLAGS.save_dir, vocab_file,
                                      out_form=out_form)
   
-        if FLAGS.evaluate:
-          evaluate_model(sess, FLAGS.data_dir,
-                         input_node_fw, input_node_bw, target_node,
-                         predictions, loss, embs=pre_embs, out_form=out_form)
+       # if FLAGS.evaluate:
+       #   evaluate_model(sess, FLAGS.data_dir,
+       #                  input_node_fw, input_node_bw, target_node,
+       #                  predictions, loss, embs=pre_embs, out_form=out_form)
   
         # Load the final saved model and run querying routine.
 #        query_model(sess, input_node, predictions,
 #                    vocab, rev_vocab, FLAGS.max_seq_len, embs=pre_embs,
 #                    out_form="cosine")
 
+        if FLAGS.evaluate:
+          query_model(sess, input_node_fw, predictions, vocab, rev_vocab, FLAGS.max_seq_len, pre_embs)
 
 if __name__ == "__main__":
     tf.compat.v1.app.run()
