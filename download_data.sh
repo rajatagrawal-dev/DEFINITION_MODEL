@@ -9,4 +9,9 @@ unzip glove.6B.zip
 cd ../../subword-nmt
 git clone https://github.com/rsennrich/subword-nmt.git
 
+cd ../models
+
+wget https://nlpcrossworddata.blob.core.windows.net/test2/avg_word.zip
+unzip avg_word.zip
+
 cd ..
