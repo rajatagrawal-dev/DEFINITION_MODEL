@@ -132,7 +132,6 @@ def read_data(data_path, vocab_size, phase="train"):
   head_path = os.path.join(
       data_path, "%s.definitions.ids%s.head" % (phase, vocab_size))
   with tf.gfile.GFile(gloss_path, mode="r") as gloss_file:
-    
     # JP: DYNAMIC PADDING to allow variable length sequences. All batches must be the same size for processing
     # find padding length for each batch
     all_glosses = gloss_file.readlines()
@@ -147,7 +146,7 @@ def read_data(data_path, vocab_size, phase="train"):
     # add zeroes to sequence to make it correct length, these won't be used later due to batch size
     if len(max_pad) < len(gloss_lens):
       max_pad.extend([0] * (len(gloss_lens) - len(max_pad)))
-    
+
   with tf.gfile.GFile(gloss_path, mode="r") as gloss_file:  
     with tf.gfile.GFile(head_path, mode="r") as head_file:
       gloss, head = gloss_file.readline(), head_file.readline()
@@ -180,6 +179,7 @@ def read_data(data_path, vocab_size, phase="train"):
         incorrect_heads[i] = check-100
       else:
         incorrect_heads[i] = check+100
+
   return np.asarray(glosses), heads_out, incorrect_heads_out
 
 
@@ -537,13 +537,19 @@ def evaluate_model(sess, data_dir, input_node_fw, input_node_bw, target_node, pr
   predictions = np.empty((0,300), dtype=float)
   correct_word = np.empty((0), dtype=int)
   ranks = np.empty((0), dtype=int)
-  
+  phase = 'test'
   # read the test data using gen_epochs
-  for epoch in gen_epochs(
-      data_dir, num_epochs, batch_size, FLAGS.vocab_size, phase="test"):
+  for _c,epoch in enumerate(gen_epochs(
+                      data_dir, num_epochs, batch_size, FLAGS.vocab_size, phase="test")):
+    print("Epoch = ",_c)
+    counter = 0
     for (gloss_fw, gloss_bw, head, _) in epoch:
       gloss_batch_fw = np.array([array for array in gloss_fw], dtype=np.int32)
       gloss_batch_bw = np.array([array for array in gloss_bw], dtype=np.int32)
+      if gloss_batch_fw.shape[1] == 0 :
+          print("########## Found 0 length gloss ##########", counter+1)
+          counter += 1
+          continue
   # use sess.run and feed_dict to get a prediction
       if config.LSTM_type=='average':
         prediction_ = sess.run(
@@ -551,7 +557,6 @@ def evaluate_model(sess, data_dir, input_node_fw, input_node_bw, target_node, pr
       elif config.LSTM_type=='bidirectional':
         prediction_ = sess.run(
             prediction, feed_dict={input_node_fw: gloss_batch_fw, input_node_bw: gloss_batch_bw, target_node: head})
-      
       correct_word = np.append(correct_word, head, axis=0)
       predictions = np.append(predictions, prediction_, axis=0)
 
@@ -562,9 +567,10 @@ def evaluate_model(sess, data_dir, input_node_fw, input_node_bw, target_node, pr
   real_word = [rev_vocab[idx] for idx in correct_word]
   # find lengths of these words (for crossword clues)
   real_word_len = [len(word) for word in real_word]
-
   vocab_list = np.empty((0), dtype=int)
   # pred_array is a list of cosine similarity values for all words in vocab,
+  print(sims.shape)
+  print(sims[0])
   for idx, pred_array in enumerate(sims[:400]):
   # find IDs for all words of correct length:
     for word in vocab:
@@ -577,7 +583,6 @@ def evaluate_model(sess, data_dir, input_node_fw, input_node_bw, target_node, pr
     xword_rank = np.where(words==correct_word[idx])
     ranks = np.append(ranks, xword_rank)
     vocab_list = np.empty((0), dtype=int)
-
   # find rank for definitions (non-crossword clues)
   counter = 400 # cant loop through the idx because it will start at 0 again
   for idx, pred_array in enumerate(sims[400:]):
@@ -592,7 +597,7 @@ def evaluate_model(sess, data_dir, input_node_fw, input_node_bw, target_node, pr
           check_words.append('HEAD WORD: {}'.format(rev_vocab[correct_word[idx]]))
           for candidate in pred_array.argsort()[::-1][:10]:
             check_words.append(rev_vocab[candidate])
-            
+  
   if check:
     print(check_words)
 
@@ -604,24 +609,29 @@ def evaluate_model(sess, data_dir, input_node_fw, input_node_bw, target_node, pr
 # eval_set[400]
 
   if FLAGS.restore:
-    guardian_long = pd.DataFrame({'head WID':correct_word[:100],'rank':ranks[:100]})
-    guardian_short = pd.DataFrame({'head WID':correct_word[100:200],'rank':ranks[100:200]})
-    NYT_long = pd.DataFrame({'head WID':correct_word[200:300],'rank':ranks[200:300]})
-    NYT_short = pd.DataFrame({'head WID':correct_word[300:400],'rank':ranks[300:400]})
-    definitions_frame = pd.DataFrame({'head WID':correct_word[400:],'rank':ranks[400:]})
-    xword_frame = pd.concat([guardian_long, guardian_short, NYT_long, NYT_short], axis=0, join='inner')  
+    all_data = pd.DataFrame({'head WID':correct_word,'rank':ranks})
+    xword_frame = pd.concat([all_data], axis=0, join='inner')
     xword_frame.to_csv('final_csvs' + FLAGS.save_dir.split('/')[2] + 'x_word.csv', sep=',')
-    definitions_frame.to_csv('final_csvs' + FLAGS.save_dir.split('/')[2] + 'definitions.csv', sep=',')
-    print('guardian_long median: {}\nguardian_short median: {}\nNYT_long median: {}\nNYT_short median: {}\nDefinitions median: {}'.format(
-        np.median(ranks[:100]),np.median(ranks[100:200]),np.median(ranks[200:300]),np.median(ranks[300:400]), np.median(ranks[400:])))
-  else:
-    with open(outfile, 'a') as f:
-      print('guardian_long median: {}\nguardian_short median: {}\nNYT_long median: {}\nNYT_short median: {}\nDefinitions median: {}'.format(
-        np.median(ranks[:100]),np.median(ranks[100:200]),np.median(ranks[200:300]),np.median(ranks[300:400]), np.median(ranks[400:])), 
-      file=f)
+    #definitions_frame.to_csv('final_csvs' + FLAGS.save_dir.split('/')[2] + 'definitions.csv', sep=',')
+    print('median rank for test data: {}'.format(np.median(ranks)))
+  #if FLAGS.restore:
+  #  guardian_long = pd.DataFrame({'head WID':correct_word[:100],'rank':ranks[:100]})
+  #  guardian_short = pd.DataFrame({'head WID':correct_word[100:200],'rank':ranks[100:200]})
+  #  NYT_long = pd.DataFrame({'head WID':correct_word[200:300],'rank':ranks[200:300]})
+  #  NYT_short = pd.DataFrame({'head WID':correct_word[300:400],'rank':ranks[300:400]})
+  #  definitions_frame = pd.DataFrame({'head WID':correct_word[400:],'rank':ranks[400:]})
+  #  xword_frame = pd.concat([guardian_long, guardian_short, NYT_long, NYT_short], axis=0, join='inner')  
+  #  xword_frame.to_csv('final_csvs' + FLAGS.save_dir.split('/')[2] + 'x_word.csv', sep=',')
+  #  definitions_frame.to_csv('final_csvs' + FLAGS.save_dir.split('/')[2] + 'definitions.csv', sep=',')
+  #  print('guardian_long median: {}\nguardian_short median: {}\nNYT_long median: {}\nNYT_short median: {}\nDefinitions median: {}'.format(
+  #      np.median(ranks[:100]),np.median(ranks[100:200]),np.median(ranks[200:300]),np.median(ranks[300:400]), np.median(ranks[400:])))
+  #else:
+  #  with open(outfile, 'a') as f:
+  #    print('guardian_long median: {}\nguardian_short median: {}\nNYT_long median: {}\nNYT_short median: {}\nDefinitions median: {}'.format(
+  #      np.median(ranks[:100]),np.median(ranks[100:200]),np.median(ranks[200:300]),np.median(ranks[300:400]), np.median(ranks[400:])), 
+  #    file=f)
 #  print('guardian_long median: {}\nguardian_short median: {}\nNYT_long median: {}\nNYT_short median: {}\nDefinitions median: {}'.format(
 #      np.median(ranks[:100]),np.median(ranks[100:200]),np.median(ranks[200:300]),np.median(ranks[300:400]), np.median(ranks[400:])))
-
 
 def restore_model(sess, save_dir, vocab_file, out_form):
   model_path = tf.train.latest_checkpoint(save_dir)
@@ -783,18 +793,18 @@ def main(unused_argv):
           rev_vocab) = restore_model(sess, FLAGS.save_dir, vocab_file,
                                      out_form=out_form)
   
-       # if FLAGS.evaluate:
-       #   evaluate_model(sess, FLAGS.data_dir,
-       #                  input_node_fw, input_node_bw, target_node,
-       #                  predictions, loss, embs=pre_embs, out_form=out_form)
+        if FLAGS.evaluate:
+          evaluate_model(sess, FLAGS.data_dir,
+                         input_node_fw, input_node_bw, target_node,
+                         predictions, loss, embs=pre_embs, out_form=out_form)
   
         # Load the final saved model and run querying routine.
 #        query_model(sess, input_node, predictions,
 #                    vocab, rev_vocab, FLAGS.max_seq_len, embs=pre_embs,
 #                    out_form="cosine")
 
-        if FLAGS.evaluate:
-          query_model(sess, input_node_fw, predictions, vocab, rev_vocab, FLAGS.max_seq_len, pre_embs)
+        #if FLAGS.evaluate:
+        #  query_model(sess, input_node_fw, predictions, vocab, rev_vocab, FLAGS.max_seq_len, pre_embs)
 
 if __name__ == "__main__":
     tf.compat.v1.app.run()
