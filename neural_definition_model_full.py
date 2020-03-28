@@ -568,9 +568,14 @@ def evaluate_model(sess, data_dir, input_node_fw, input_node_bw, target_node, pr
   # find lengths of these words (for crossword clues)
   real_word_len = [len(word) for word in real_word]
   vocab_list = np.empty((0), dtype=int)
+  # pred_array is a list of cosine similarity values for all words in vocab
+
+
+  top_candidate_results = []
+  top_candidate_results_file = os.path.join(FLAGS.data_dir,'top_candidate_results.txt')
+  number_of_top_results = 10
+
   # pred_array is a list of cosine similarity values for all words in vocab,
-  print(sims.shape)
-  print(sims[0])
   for idx, pred_array in enumerate(sims[:400]):
   # find IDs for all words of correct length:
     for word in vocab:
@@ -579,10 +584,18 @@ def evaluate_model(sess, data_dir, input_node_fw, input_node_bw, target_node, pr
     correct_length_ids = vocab_list
     ranked_wids = pred_array.argsort()[::-1]
     words = [word for word in ranked_wids if word in correct_length_ids]
-    
+
+    # appending candidate answers to top_candidate_results
+    top_candidates = [rev_vocab[word_idx] for word_idx in words[:number_of_top_results]]
+    top_candidate_results.append(top_candidates)
+
     xword_rank = np.where(words==correct_word[idx])
     ranks = np.append(ranks, xword_rank)
     vocab_list = np.empty((0), dtype=int)
+
+  np.savetxt(top_candidate_results_file, top_candidate_results, fmt="%s")
+
+
   # find rank for definitions (non-crossword clues)
   counter = 400 # cant loop through the idx because it will start at 0 again
   for idx, pred_array in enumerate(sims[400:]):
