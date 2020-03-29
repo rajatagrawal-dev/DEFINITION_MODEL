@@ -590,6 +590,11 @@ def evaluate_model(sess, data_dir, input_node_fw, input_node_bw, target_node, pr
     top_candidate_results.append(top_candidates)
 
     xword_rank = np.where(words==correct_word[idx])
+    
+    # if the correct answer is not in vocab, replace rank with -1. OOV words are encoded as "_UNK" with vocab id 1
+    if correct_word[idx] == 1:
+        xword_rank = -1
+        
     ranks = np.append(ranks, xword_rank)
     vocab_list = np.empty((0), dtype=int)
 
@@ -626,7 +631,7 @@ def evaluate_model(sess, data_dir, input_node_fw, input_node_bw, target_node, pr
     xword_frame = pd.concat([all_data], axis=0, join='inner')
     xword_frame.to_csv('final_csvs' + FLAGS.save_dir.split('/')[2] + 'x_word.csv', sep=',')
     #definitions_frame.to_csv('final_csvs' + FLAGS.save_dir.split('/')[2] + 'definitions.csv', sep=',')
-    print('median rank for test data: {}'.format(np.median(ranks)))
+    print('median rank for test data: {}'.format(np.median(ranks[np.where(ranks > -1)])))
   #if FLAGS.restore:
   #  guardian_long = pd.DataFrame({'head WID':correct_word[:100],'rank':ranks[:100]})
   #  guardian_short = pd.DataFrame({'head WID':correct_word[100:200],'rank':ranks[100:200]})
