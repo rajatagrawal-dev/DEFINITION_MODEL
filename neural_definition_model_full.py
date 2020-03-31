@@ -678,10 +678,10 @@ def query_model(sess, input_node, predictions, vocab, rev_vocab,
                 max_seq_len, saver=None, embs=None, out_form="cosine", sentence="", top=10):
 	
     # Get token-ids for the input gloss.
-    token_ids = data_utils.sentence_to_token_ids(sentence, vocab)
+    token_ids = data_utils_BPE.sentence_to_token_ids(sentence, vocab)
 	
     # Pad out (or truncate) the input gloss ids.
-    padded_ids = np.asarray(data_utils.pad_sequence(token_ids, max_seq_len))
+    padded_ids = np.asarray(data_utils_BPE.pad_sequence(token_ids, max_seq_len))
     input_data = np.asarray([padded_ids])
 	
     # Single vector encoding the input gloss.
@@ -778,13 +778,6 @@ def main(argv):
 
   # Load an existing model.
   else:
-    data_utils_BPE.prepare_dict_data(
-        FLAGS.data_dir,
-        FLAGS.train_file,
-        FLAGS.dev_file,
-        FLAGS.test_file,
-        vocabulary_size=FLAGS.vocab_size,
-        max_seq_len=FLAGS.max_seq_len)
 
     # Note cosine loss output form is hard coded here. For softmax output
       # change "cosine" to "softmax"
@@ -801,7 +794,6 @@ def main(argv):
         (input_node_fw, input_node_bw, target_node, predictions, loss, vocab,
           rev_vocab) = restore_model(sess, FLAGS.save_dir, vocab_file,
                                      out_form=out_form)
-	
 	sentence = argv[1]
 	top = int(argv[2])
 	
