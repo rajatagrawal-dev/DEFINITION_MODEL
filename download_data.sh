@@ -3,6 +3,7 @@ unzip data-20200318T221609Z-001.zip
 cp guardian_data/test_guardian_600.tok data/full_data
 
 wget https://raw.githubusercontent.com/ucabops/robbie/master/data/gquick-10-entries.txt -P data/full_data -q
+wget https://nlpcrossworddata.blob.core.windows.net/test2/definitions_100000.vocab -P data/full_data -q
 
 cd data/embeddings
 wget https://nlpcrossworddata.blob.core.windows.net/test2/glove.6B.zip -q
