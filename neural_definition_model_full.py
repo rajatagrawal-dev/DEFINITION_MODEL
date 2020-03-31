@@ -720,8 +720,7 @@ def main(argv):
   If restore FLAG is true, loads an existing model and runs test
   routine. If restore FLAG is false, builds a model and trains it.
   """
-  print(argv)
-  return
+
   if FLAGS.vocab_file is None:
     vocab_file = os.path.join(FLAGS.data_dir,
                               "definitions_%s.vocab" % FLAGS.vocab_size)
@@ -803,7 +802,10 @@ def main(argv):
         (input_node_fw, input_node_bw, target_node, predictions, loss, vocab,
           rev_vocab) = restore_model(sess, FLAGS.save_dir, vocab_file,
                                      out_form=out_form)
-  
+	
+	sentence = argv[1]
+	top = argv[2]
+	
         #if FLAGS.evaluate:
           #evaluate_model(sess, FLAGS.data_dir,
                          #input_node_fw, input_node_bw, target_node,
@@ -815,7 +817,7 @@ def main(argv):
 #                    out_form="cosine")
 
         if FLAGS.evaluate:
-          query_model(sess, input_node_fw, predictions, vocab, rev_vocab, FLAGS.max_seq_len, pre_embs)
+          query_model(sess, input_node_fw, predictions, vocab, rev_vocab, FLAGS.max_seq_len, pre_embs, sentence=sentence, top=top)
 
 if __name__ == "__main__":
     tf.compat.v1.app.run()
