@@ -1,31 +1,22 @@
 """Language encoder for dictionary definitions.
-
 For training, takes (target-word, dictionary-definition) pairs and
 optimises the encoder to produce a single vector for each definition
 which is close to the vector for the corresponding target word.
-
 The definitions encoder can be either a bag-of-words or an RNN model.
-
 The vectors for the target words, and the words making up the
 definitions, can be either pre-trained or learned as part of the
 training process.
-
 Sometimes the definitions are referred to as "glosses", and the target
 words as "heads".
-
 Inspiration from Tensorflow documentation (www.tensorflow.org).
 The data reading functions were taken from
 https://r2rt.com/recurrent-neural-networks-in-tensorflow-i.html
-
 JP: Adapted from original implementation in:
 Hill, F., Cho, K., Korhonen, A., & Bengio, Y. (2015). Learning to understand phrases by embedding the
 dictionary. arXiv preprint arXiv:1504.00548 
-
 There are some significant differences from the original implementation, but 
 much of the code remains the same. For reference the original is included in this repo
-
 Every endeavour is taken in this code to indicate which parts are my own work.
-
 """
 
 from __future__ import absolute_import
@@ -112,12 +103,10 @@ with open(outfile, 'w') as f:
 
 def read_data(data_path, vocab_size, phase="train"):
   """Read data from gloss and head files.
-
   Args:
     data_path: path to the definition .gloss and .head files.
     vocab_size: total number of word types in the data.
     phase: used to locate definitions (train or dev).
-
   Returns:
     a tuple (gloss, head, incorrect_head)
       where gloss is an np array of encoded glosses and 
@@ -185,10 +174,8 @@ def read_data(data_path, vocab_size, phase="train"):
 
 def load_pretrained_embeddings(embeddings_file_path):
   """Loads pre-trained word embeddings.
-
   Args:
     embeddings_file_path: path to the pickle file with the embeddings.
-
   Returns:
     tuple of (dictionary of embeddings, length of each embedding).
   """
@@ -247,7 +234,6 @@ def gen_epochs(data_path, total_epochs, batch_size, vocab_size, phase="train"):
 def build_model(max_seq_len, vocab_size, emb_size, learning_rate, encoder_type,
                 pretrained_target=True, pretrained_input=False, pre_embs=None):
   """Build the dictionary model including loss function.
-
   Args:
     max_seq_len: maximum length of gloss.
     vocab_size: number of words in vocab.
@@ -257,21 +243,17 @@ def build_model(max_seq_len, vocab_size, emb_size, learning_rate, encoder_type,
     pretrained_target: Boolean indicating pre-trained head embeddings.
     pretrained_input: Boolean indicating pre-trained gloss word embeddings.
     pre_embs: pre-trained embedding matrix.
-
   Returns:
     tuple of (gloss_in, head_in, total_loss, train_step, output_form)
-
   Creates the embedding matrix for the input, which is split into the
   glosses (definitions) and the heads (targets). So checks if there are
   pre-trained embeddings for the glosses or heads, and if not sets up
   some trainable embeddings. The default is to have pre-trained
   embeddings for the heads but not the glosses.
-
   The encoder for the glosses is either an RNN (with LSTM cell) or a
   bag-of-words model (in which the word vectors are simply
   averaged). For the RNN, the output is the output vector for the
   final state.
-
   If the heads are pre-trained, the output of the encoder is put thro'
   a non-linear layer, and the loss is the cosine distance. Without
   pre-trained heads, a linear layer on top of the encoder output is
@@ -715,7 +697,6 @@ def query_model(sess, input_node, predictions, vocab, rev_vocab,
 
 def main(argv):
   """Calls train and test routines for the dictionary model.
-
   If restore FLAG is true, loads an existing model and runs test
   routine. If restore FLAG is false, builds a model and trains it.
   """
@@ -794,8 +775,8 @@ def main(argv):
         (input_node_fw, input_node_bw, target_node, predictions, loss, vocab,
           rev_vocab) = restore_model(sess, FLAGS.save_dir, vocab_file,
                                      out_form=out_form)
-	sentence = argv[1]
-	top = int(argv[2])
+		sentence = argv[1]
+		top = int(argv[2])
 	
         #if FLAGS.evaluate:
           #evaluate_model(sess, FLAGS.data_dir,
