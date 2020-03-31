@@ -775,8 +775,9 @@ def main(argv):
         (input_node_fw, input_node_bw, target_node, predictions, loss, vocab,
           rev_vocab) = restore_model(sess, FLAGS.save_dir, vocab_file,
                                      out_form=out_form)
-		sentence = argv[1]
-		top = int(argv[2])
+        sentence = argv[1]
+        top = int(argv[2])
+        print(sentence)
 	
         #if FLAGS.evaluate:
           #evaluate_model(sess, FLAGS.data_dir,
