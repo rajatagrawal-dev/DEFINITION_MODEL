@@ -714,12 +714,14 @@ def query_model(sess, input_node, predictions, vocab, rev_vocab,
     for ii, cand in enumerate(candidates):
       print("%s: %s" % (ii + 1, cand))
 
-def main(unused_argv):
+def main(argv):
   """Calls train and test routines for the dictionary model.
 
   If restore FLAG is true, loads an existing model and runs test
   routine. If restore FLAG is false, builds a model and trains it.
   """
+  print(argv)
+  return
   if FLAGS.vocab_file is None:
     vocab_file = os.path.join(FLAGS.data_dir,
                               "definitions_%s.vocab" % FLAGS.vocab_size)
