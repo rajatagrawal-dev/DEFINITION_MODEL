@@ -707,12 +707,11 @@ def query_model(sess, input_node, predictions, vocab, rev_vocab,
     sims_base = np.nan_to_num(sims_base)
     candidate_ids_base = sims_base.argsort()[::-1][:top]
     candidates_base = [rev_vocab[idx] for idx in candidate_ids_base]
-    print("Top %s baseline candidates:" % top)
-    for ii, cand in enumerate(candidates_base):
-      print("%s: %s" % (ii + 1, cand))
-    print("\n Top %s candidates from the model:" % top)
-    for ii, cand in enumerate(candidates):
-      print("%s: %s" % (ii + 1, cand))
+	
+    np.savetxt("query_results.txt",candidates,fmt="%s")
+    #print("\n Top %s candidates from the model:" % top)
+    #for ii, cand in enumerate(candidates):
+    #  print("%s: %s" % (ii + 1, cand))
 
 def main(argv):
   """Calls train and test routines for the dictionary model.
