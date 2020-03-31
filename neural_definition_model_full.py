@@ -675,7 +675,7 @@ def restore_model(sess, save_dir, vocab_file, out_form):
 #       It will be re-added in a future version
 
 def query_model(sess, input_node, predictions, vocab, rev_vocab, 
-                max_seq_len, saver=None, embs=None, out_form="cosine", sentence, top):
+                max_seq_len, saver=None, embs=None, out_form="cosine", sentence="", top=10):
 	
     # Get token-ids for the input gloss.
     token_ids = data_utils.sentence_to_token_ids(sentence, vocab)
@@ -804,7 +804,7 @@ def main(argv):
                                      out_form=out_form)
 	
 	sentence = argv[1]
-	top = argv[2]
+	top = int(argv[2])
 	
         #if FLAGS.evaluate:
           #evaluate_model(sess, FLAGS.data_dir,
@@ -817,7 +817,7 @@ def main(argv):
 #                    out_form="cosine")
 
         if FLAGS.evaluate:
-          query_model(sess, input_node_fw, predictions, vocab, rev_vocab, FLAGS.max_seq_len, pre_embs, sentence=sentence, top=top)
+          query_model(sess, input_node_fw, predictions, vocab, rev_vocab, FLAGS.max_seq_len, embs=pre_embs, sentence=sentence, top=top)
 
 if __name__ == "__main__":
     tf.compat.v1.app.run()
